@@ -116,7 +116,8 @@ stringData:
 `);
 
 // ---------------- deployments ----------------
-write('03-acr-pull-secret.example.yaml', `# One time per namespace. Create with your ACR service-principal credentials:
+// Note: no .yaml extension so `kubectl apply -f k8s/` ignores this example.
+write('03-acr-pull-secret.example', `# One time per namespace. Create with your ACR service-principal credentials:
 #   kubectl create secret docker-registry acr-secret \\
 #     --docker-server=${registry} --docker-username=<clientId> \\
 #     --docker-password=<clientSecret> -n ${NS}

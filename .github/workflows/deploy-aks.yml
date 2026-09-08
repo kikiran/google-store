@@ -1,0 +1,81 @@
+# Deploys the Nova Store stack to an Azure Kubernetes Service (AKS) cluster.
+# Uses images already pushed to ACR by the build workflow (docker-image.yml).
+# The images are referenced by the exact git SHA tag (sha-<sha>) that the
+# build pipeline produced, so a deploy always rolls out the matching build.
+#
+# Required GitHub Actions secrets:
+#   AZURE_CREDENTIALS   JSON from `az ad sp create-for-rbac --sdk-auth`
+#                       { clientId, clientSecret, subscriptionId, tenantId }
+#   AKS_RESOURCE_GROUP  resource group of the AKS cluster
+#   AKS_CLUSTER_NAME    name of the AKS cluster
+#   ACR_LOGIN_SERVER    e.g. novastoreacr.azurecr.io
+#   INGRESS_HOST        (optional) public host for the ingress, e.g. 20.204.55.77.nip.io
+#
+# Clusters are only allowed to deploy if they exist in the subscription of the
+# service principal inside AZURE_CREDENTIALS.
+
+name: Deploy to AKS
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: aks-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  AKS_RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
+  AKS_CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
+  ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+  INGRESS_HOST: ${{ secrets.INGRESS_HOST }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure login (service principal)
+        uses: azure/login@v2
+        with:
+          auth-type: SERVICE_PRINCIPAL
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get AKS credentials
+        uses: azure/aks-set-context@v3
+        with:
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+          resource-group: ${{ env.AKS_RESOURCE_GROUP }}
+
+      - name: Regenerate manifests pinned to this build
+        run: node infrastructure/scripts/generate-k8s.mjs "$ACR_LOGIN_SERVER" "sha-${{ github.sha }}"
+
+      - name: Create ACR pull secret in namespace
+        run: |
+          CREDS='${{ secrets.AZURE_CREDENTIALS }}'
+          CLIENT_ID=$(echo "$CREDS" | jq -r .clientId)
+          CLIENT_SECRET=$(echo "$CREDS" | jq -r .clientSecret)
+          kubectl create secret docker-registry acr-secret \
+            --docker-server="$ACR_LOGIN_SERVER" \
+            --docker-username="$CLIENT_ID" \
+            --docker-password="$CLIENT_SECRET" \
+            --namespace nova-store --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply manifests
+        run: |
+          if [ -n "$INGRESS_HOST" ]; then
+            sed -i "s/nova-store.example.com/$INGRESS_HOST/" k8s/40-ingress.yaml
+          fi
+          kubectl apply -f k8s/
+
+      - name: Wait for rollout
+        run: kubectl rollout status deploy -n nova-store --timeout=5m
+
+      - name: Verify ingress + pods
+        run: |
+          kubectl get ingress -n nova-store
+          kubectl get pods -n nova-store
