@@ -1,6 +1,6 @@
 # =====================================================================
 # Nova Store — Build & push all images to Azure Container Registry (ACR)
-#
+
 # Auth: Azure login via a Service Principal. Its credentials are stored
 # as one GitHub Actions secret (never in the repo):
 #   AZURE_CREDENTIALS   JSON from `az ad sp create-for-rbac --sdk-auth`
