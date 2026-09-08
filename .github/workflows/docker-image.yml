@@ -6,6 +6,7 @@
 #   AZURE_CREDENTIALS   JSON from `az ad sp create-for-rbac --sdk-auth`
 #                       { clientId, clientSecret, subscriptionId, tenantId }
 #   ACR_LOGIN_SERVER    e.g. novastoreacr.azurecr.io
+#   ACR_NAME            short registry name, e.g. novastoreacr
 #
 # Tags pushed per image:  latest (main only), <git-sha>, branch name,
 # and <semver> on git tags (v1.2.3).
@@ -34,6 +35,7 @@ concurrency:
 
 env:
   ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+  ACR_NAME: ${{ secrets.ACR_NAME }}
 
 jobs:
   build-and-push:
@@ -65,6 +67,9 @@ jobs:
         with:
           auth-type: SERVICE_PRINCIPAL
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Docker login to ACR
+        run: az acr login --name "$ACR_NAME"
 
       - name: Docker metadata (tags)
         id: meta
