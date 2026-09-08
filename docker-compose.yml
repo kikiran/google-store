@@ -17,7 +17,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root_dev
       MYSQL_DATABASE: nova_user
-      MYSQL_USER: nova
+      MYSQL_USER: novauser
       MYSQL_PASSWORD: nova_secret
     volumes:
       - ./infrastructure/mysql/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro

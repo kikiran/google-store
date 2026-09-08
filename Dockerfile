@@ -4,7 +4,7 @@
 # =====================================================================
 
 # ---- stage 1: install dependencies + build ----
-FROM node:20-alpine AS client-build
+FROM node:24-alpine AS client-build
 
 WORKDIR /app
 
@@ -24,7 +24,7 @@ COPY . .
 RUN npm run build -w client
 
 # ---- stage 2: production preview / dev server ----
-FROM node:20-alpine AS runtime
+FROM node:24-alpine AS runtime
 
 WORKDIR /app
 
