@@ -1,3 +1,4 @@
+
 # Deploys the Nova Store stack to an Azure Kubernetes Service (AKS) cluster.
 # Uses images already pushed to ACR by the build workflow (docker-image.yml).
 # The images are referenced by the exact git SHA tag (sha-<sha>) that the
