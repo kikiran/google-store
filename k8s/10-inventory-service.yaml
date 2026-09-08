@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-service
+  namespace: nova-store
+  labels:
+    app: inventory-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory-service
+  template:
+    metadata:
+      labels:
+        app: inventory-service
+    spec:
+      imagePullSecrets:
+        - name: acr-secret
+      containers:
+        - name: inventory-service
+          image: novastoreacr.azurecr.io/nova/inventory-service:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: nova-store-config
+            - secretRef:
+                name: nova-store-secrets
+          env:
+            - name: PORT_INVENTORY
+              value: "3004"
+          ports:
+            - name: http
+              containerPort: 3004
+          livenessProbe:
+            tcpSocket:
+              port: 3004
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          readinessProbe:
+            tcpSocket:
+              port: 3004
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-service
+  namespace: nova-store
+spec:
+  selector:
+    app: inventory-service
+  ports:
+    - port: 3004
+      targetPort: 3004

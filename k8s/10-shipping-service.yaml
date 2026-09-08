@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shipping-service
+  namespace: nova-store
+  labels:
+    app: shipping-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shipping-service
+  template:
+    metadata:
+      labels:
+        app: shipping-service
+    spec:
+      imagePullSecrets:
+        - name: acr-secret
+      containers:
+        - name: shipping-service
+          image: novastoreacr.azurecr.io/nova/shipping-service:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: nova-store-config
+            - secretRef:
+                name: nova-store-secrets
+          env:
+            - name: PORT_SHIPPING
+              value: "3008"
+          ports:
+            - name: http
+              containerPort: 3008
+          livenessProbe:
+            tcpSocket:
+              port: 3008
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          readinessProbe:
+            tcpSocket:
+              port: 3008
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shipping-service
+  namespace: nova-store
+spec:
+  selector:
+    app: shipping-service
+  ports:
+    - port: 3008
+      targetPort: 3008

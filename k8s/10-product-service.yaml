@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+  namespace: nova-store
+  labels:
+    app: product-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      imagePullSecrets:
+        - name: acr-secret
+      containers:
+        - name: product-service
+          image: novastoreacr.azurecr.io/nova/product-service:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: nova-store-config
+            - secretRef:
+                name: nova-store-secrets
+          env:
+            - name: PORT_PRODUCT
+              value: "3003"
+          ports:
+            - name: http
+              containerPort: 3003
+          livenessProbe:
+            tcpSocket:
+              port: 3003
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          readinessProbe:
+            tcpSocket:
+              port: 3003
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  namespace: nova-store
+spec:
+  selector:
+    app: product-service
+  ports:
+    - port: 3003
+      targetPort: 3003

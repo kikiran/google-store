@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-service
+  namespace: nova-store
+  labels:
+    app: search-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: search-service
+  template:
+    metadata:
+      labels:
+        app: search-service
+    spec:
+      imagePullSecrets:
+        - name: acr-secret
+      containers:
+        - name: search-service
+          image: novastoreacr.azurecr.io/nova/search-service:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: nova-store-config
+            - secretRef:
+                name: nova-store-secrets
+          env:
+            - name: PORT_SEARCH
+              value: "3010"
+          ports:
+            - name: http
+              containerPort: 3010
+          livenessProbe:
+            tcpSocket:
+              port: 3010
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          readinessProbe:
+            tcpSocket:
+              port: 3010
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-service
+  namespace: nova-store
+spec:
+  selector:
+    app: search-service
+  ports:
+    - port: 3010
+      targetPort: 3010

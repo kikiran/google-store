@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: review-service
+  namespace: nova-store
+  labels:
+    app: review-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: review-service
+  template:
+    metadata:
+      labels:
+        app: review-service
+    spec:
+      imagePullSecrets:
+        - name: acr-secret
+      containers:
+        - name: review-service
+          image: novastoreacr.azurecr.io/nova/review-service:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: nova-store-config
+            - secretRef:
+                name: nova-store-secrets
+          env:
+            - name: PORT_REVIEW
+              value: "3009"
+          ports:
+            - name: http
+              containerPort: 3009
+          livenessProbe:
+            tcpSocket:
+              port: 3009
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          readinessProbe:
+            tcpSocket:
+              port: 3009
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: review-service
+  namespace: nova-store
+spec:
+  selector:
+    app: review-service
+  ports:
+    - port: 3009
+      targetPort: 3009

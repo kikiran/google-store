@@ -1,0 +1,35 @@
+# NGINX ingress for outside access.
+# Prereq: ingress-nginx controller installed (e.g. az aks ingress or helm).
+# Set host to your domain, or use '<EXTERNAL-IP>.nip.io' for a quick public URL.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nova-store
+  namespace: nova-store
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: nova-store.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: client
+                port:
+                  number: 5173
+  # Choose one: cert-manager for TLS (recommended) — create Issuer/ClusterIssuer:
+  # tls:
+  #   - hosts:
+  #       - nova-store.example.com
+  #     secretName: nova-store-tls

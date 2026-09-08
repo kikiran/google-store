@@ -1,0 +1,53 @@
+# Shared non-secret configuration for all Nova Store pods.
+# Update DB_HOST / DB_USER / CORS_ORIGINS to your environment before applying.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nova-store-config
+  namespace: nova-store
+data:
+  NODE_ENV: production
+  LOG_LEVEL: info
+
+  # --- MySQL (use your Azure Database for MySQL flexible server) ---
+  DB_HOST: nova-server.mysql.database.azure.com
+  DB_PORT: "3306"
+  DB_USER: admin
+  DB_SSL: "true"
+  DB_SSL_INSECURE: "true"
+  DB_ALLOW_PUBLIC_KEY: "false"
+  # One logical schema per service:
+  DB_USER_SCHEMA: nova_user
+  DB_PRODUCT_SCHEMA: nova_product
+  DB_INVENTORY_SCHEMA: nova_inventory
+  DB_CART_SCHEMA: nova_cart
+  DB_ORDER_SCHEMA: nova_order
+  DB_PAYMENT_SCHEMA: nova_payment
+  DB_SHIPPING_SCHEMA: nova_shipping
+  DB_REVIEW_SCHEMA: nova_review
+  DB_NOTIFICATION_SCHEMA: nova_notification
+
+  # --- JWT / cookies ---
+  JWT_ACCESS_TTL: 15m
+  JWT_REFRESH_TTL: 7d
+  JWT_ISSUER: nova-store
+  COOKIE_SECURE: "true"
+
+  # --- Mock payment provider ---
+  MOCK_PAYMENT_PROVIDER: success
+
+  # --- CORS (replace with your public ingress host) ---
+  CORS_ORIGINS: http://localhost,http://localhost:5173
+
+  # --- Internal service URLs (cluster DNS) ---
+  AUTH_SERVICE_URL: http://auth-service:3001
+  USER_SERVICE_URL: http://user-service:3002
+  PRODUCT_SERVICE_URL: http://product-service:3003
+  INVENTORY_SERVICE_URL: http://inventory-service:3004
+  CART_SERVICE_URL: http://cart-service:3005
+  ORDER_SERVICE_URL: http://order-service:3006
+  PAYMENT_SERVICE_URL: http://payment-service:3007
+  SHIPPING_SERVICE_URL: http://shipping-service:3008
+  REVIEW_SERVICE_URL: http://review-service:3009
+  SEARCH_SERVICE_URL: http://search-service:3010
+  NOTIFICATION_SERVICE_URL: http://notification-service:3011
