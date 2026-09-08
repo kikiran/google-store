@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+client/dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pids/
+
+# Database
+*.local.db
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+
+# Coverage / caches
+coverage/
+.cache/
+.temp/
+
+# Runtime
+.pid/
+*.pid
+
+# Misc
+.tmp/

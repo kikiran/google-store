@@ -1,0 +1,433 @@
+# =====================================================================
+# Nova Store — Docker Compose (primary orchestration file)
+# Usage: docker compose up            (start everything)
+#        docker compose up -d         (detached)
+#        docker compose down -v       (stop + remove volumes)
+# =====================================================================
+
+services:
+
+  # ---------- MySQL 8.4 ------------------------------------------------
+  mysql:
+    image: mysql:8.4
+    container_name: nova-mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_dev
+      MYSQL_DATABASE: nova_user
+      MYSQL_USER: nova
+      MYSQL_PASSWORD: nova_secret
+    volumes:
+      - ./infrastructure/mysql/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./infrastructure/mysql/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+      - nova_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - nova-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ---------- API Gateway (port 8080) ----------------------------------
+  api-gateway:
+    container_name: nova-api-gateway
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.service
+      args:
+        SERVICE: api-gateway
+    ports:
+      - "8080:8080"
+    env_file: .env
+    environment:
+      PORT_GATEWAY: "8080"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USER: nova
+      DB_PASSWORD: nova_secret
+      AUTH_SERVICE_URL: http://auth-service:3001
+      USER_SERVICE_URL: http://user-service:3002
+      PRODUCT_SERVICE_URL: http://product-service:3003
+      INVENTORY_SERVICE_URL: http://inventory-service:3004
+      CART_SERVICE_URL: http://cart-service:3005
+      ORDER_SERVICE_URL: http://order-service:3006
+      PAYMENT_SERVICE_URL: http://payment-service:3007
+      SHIPPING_SERVICE_URL: http://shipping-service:3008
+      REVIEW_SERVICE_URL: http://review-service:3009
+      SEARCH_SERVICE_URL: http://search-service:3010
+      NOTIFICATION_SERVICE_URL: http://notification-service:3011
+      CORS_ORIGINS: "http://localhost:5173,http://localhost:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - nova-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # ---------- Auth Service (3001) --------------------------------------
+  auth-service:
+    container_name: nova-auth-service
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.service
+      args:
+        SERVICE: auth-service
+    env_file: .env
+    environment:
+      PORT_AUTH: "3001"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USER: nova
+      DB_PASSWORD: nova_secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - nova-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # ---------- User Service (3002) --------------------------------------
+  user-service:
+    container_name: nova-user-service
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.service
+      args:
+        SERVICE: user-service
+    env_file: .env
+    environment:
+      PORT_USER: "3002"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USER: nova
+      DB_PASSWORD: nova_secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - nova-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # ---------- Product Service (3003) -----------------------------------
+  product-service:
+    container_name: nova-product-service
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.service
+      args:
+        SERVICE: product-service
+    env_file: .env
+    environment:
+      PORT_PRODUCT: "3003"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USER: nova
+      DB_PASSWORD: nova_secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - nova-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # ---------- Inventory Service (3004) ---------------------------------
+  inventory-service:
+    container_name: nova-inventory-service
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.service
+      args:
+        SERVICE: inventory-service
+    env_file: .env
+    environment:
+      PORT_INVENTORY: "3004"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USER: nova
+      DB_PASSWORD: nova_secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - nova-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # ---------- Cart Service (3005) --------------------------------------
+  cart-service:
+    container_name: nova-cart-service
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.service
+      args:
+        SERVICE: cart-service
+    env_file: .env
+    environment:
+      PORT_CART: "3005"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USER: nova
+      DB_PASSWORD: nova_secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - nova-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # ---------- Order Service (3006) -------------------------------------
+  order-service:
+    container_name: nova-order-service
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.service
+      args:
+        SERVICE: order-service
+    env_file: .env
+    environment:
+      PORT_ORDER: "3006"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USER: nova
+      DB_PASSWORD: nova_secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - nova-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # ---------- Payment Service (3007) -----------------------------------
+  payment-service:
+    container_name: nova-payment-service
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.service
+      args:
+        SERVICE: payment-service
+    env_file: .env
+    environment:
+      PORT_PAYMENT: "3007"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USER: nova
+      DB_PASSWORD: nova_secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - nova-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # ---------- Shipping Service (3008) ----------------------------------
+  shipping-service:
+    container_name: nova-shipping-service
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.service
+      args:
+        SERVICE: shipping-service
+    env_file: .env
+    environment:
+      PORT_SHIPPING: "3008"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USER: nova
+      DB_PASSWORD: nova_secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - nova-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # ---------- Review Service (3009) ------------------------------------
+  review-service:
+    container_name: nova-review-service
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.service
+      args:
+        SERVICE: review-service
+    env_file: .env
+    environment:
+      PORT_REVIEW: "3009"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USER: nova
+      DB_PASSWORD: nova_secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - nova-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # ---------- Search Service (3010) ------------------------------------
+  search-service:
+    container_name: nova-search-service
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.service
+      args:
+        SERVICE: search-service
+    env_file: .env
+    environment:
+      PORT_SEARCH: "3010"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USER: nova
+      DB_PASSWORD: nova_secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - nova-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # ---------- Notification Service (3011) -------------------------------
+  notification-service:
+    container_name: nova-notification-service
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.service
+      args:
+        SERVICE: notification-service
+    env_file: .env
+    environment:
+      PORT_NOTIFICATION: "3011"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USER: nova
+      DB_PASSWORD: nova_secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - nova-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # ---------- Client (Vite dev) ----------------------------------------
+  client:
+    container_name: nova-client
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: npm run dev -w client -- --host 0.0.0.0
+    ports:
+      - "5173:5173"
+    env_file: .env
+    environment:
+      VITE_API_URL: "http://localhost:8080/api"
+    depends_on:
+      api-gateway:
+        condition: service_started
+    networks:
+      - nova-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # ---------- Nginx (production reverse proxy — optional) ---------------
+  nginx:
+    image: nginx:alpine
+    container_name: nova-nginx
+    profiles:
+      - prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./client/dist:/usr/share/nginx/html:ro
+    depends_on:
+      - api-gateway
+    networks:
+      - nova-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+# ---------- Volumes ----------------------------------------------------
+volumes:
+  nova_mysql_data:
+    name: nova_mysql_data
+
+# ---------- Networks ---------------------------------------------------
+networks:
+  nova-net:
+    name: nova-net
+    driver: bridge

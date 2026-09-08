@@ -1,0 +1,808 @@
+{
+  "info": {
+    "_postman_id": "nova-store-api-collection",
+    "name": "Nova Store API",
+    "description": "Complete API collection for Nova Store — a microservices e-commerce platform.\n\nImport this collection into Postman and set the `baseUrl` variable (default: http://localhost:8080).\n\nAuthentication is cookie-based. After logging in via the Login request, subsequent requests automatically include the httpOnly cookies.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "noauth"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (store token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Cookies (nova_access, nova_refresh) are stored automatically",
+                  "// by Postman when withCredentials flow is used.",
+                  "pm.test('Login successful', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@nova.dev\",\n  \"password\": \"Customer123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/auth/me"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/refresh"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/logout"
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/forgot-password",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/reset-password",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"<reset-token>\",\n  \"password\": \"NewSecurePass123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-email?token=<verification-token>",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "verify-email"],
+              "query": [{ "key": "token", "value": "<verification-token>" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/users/me"
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/users/me",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+91-9876543210\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List My Addresses",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/users/me/addresses"
+          }
+        },
+        {
+          "name": "Create Address",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/users/me/addresses",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Home\",\n  \"fullName\": \"Jane Doe\",\n  \"phone\": \"+91-9876543210\",\n  \"addressLine1\": \"12 MG Road\",\n  \"city\": \"Bengaluru\",\n  \"state\": \"Karnataka\",\n  \"postalCode\": \"560001\",\n  \"country\": \"India\",\n  \"isDefault\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Address",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/users/me/addresses/1",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Home\",\n  \"fullName\": \"Jane Doe\",\n  \"phone\": \"+91-9876543210\",\n  \"addressLine1\": \"45 Park Street\",\n  \"city\": \"Kolkata\",\n  \"state\": \"West Bengal\",\n  \"postalCode\": \"700016\",\n  \"country\": \"India\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Address",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/users/me/addresses/1"
+          }
+        },
+        {
+          "name": "Set Default Address",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/users/me/addresses/1/default"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/products?page=1&limit=24",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "24" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Products (filtered)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/products?category=phones&sort=featured&minPrice=50000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"],
+              "query": [
+                { "key": "category", "value": "phones" },
+                { "key": "sort", "value": "featured" },
+                { "key": "minPrice", "value": "50000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Product by Slug",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/products/nova-x1-pro"
+          }
+        },
+        {
+          "name": "Get Related Products",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/products/1/related"
+          }
+        },
+        {
+          "name": "List Categories",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/categories"
+          }
+        },
+        {
+          "name": "Get Category by Slug",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/categories/phones"
+          }
+        },
+        {
+          "name": "List Active Promotions",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/promotions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "Get Cart",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cart?sessionKey=ses_xxx",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cart"],
+              "query": [{ "key": "sessionKey", "value": "ses_xxx" }]
+            }
+          }
+        },
+        {
+          "name": "Get Cart Count",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/count?sessionKey=ses_xxx",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cart", "count"],
+              "query": [{ "key": "sessionKey", "value": "ses_xxx" }]
+            }
+          }
+        },
+        {
+          "name": "Add Item to Cart",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/items?sessionKey=ses_xxx",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cart", "items"],
+              "query": [{ "key": "sessionKey", "value": "ses_xxx" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"variantId\": 1,\n  \"quantity\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Cart Item Quantity",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/items/1?sessionKey=ses_xxx",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cart", "items", "1"],
+              "query": [{ "key": "sessionKey", "value": "ses_xxx" }]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove Cart Item",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/items/1?sessionKey=ses_xxx",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cart", "items", "1"],
+              "query": [{ "key": "sessionKey", "value": "ses_xxx" }]
+            }
+          }
+        },
+        {
+          "name": "Clear Cart",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/cart?sessionKey=ses_xxx",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cart"],
+              "query": [{ "key": "sessionKey", "value": "ses_xxx" }]
+            }
+          }
+        },
+        {
+          "name": "Merge Guest Cart",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/merge?sessionKey=ses_xxx",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cart", "merge"],
+              "query": [{ "key": "sessionKey", "value": "ses_xxx" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create Order (Checkout)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/orders",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane@example.com\",\n  \"name\": \"Jane Doe\",\n  \"shippingAddress\": {\n    \"fullName\": \"Jane Doe\",\n    \"phone\": \"+91-9876543210\",\n    \"addressLine1\": \"12 MG Road\",\n    \"city\": \"Bengaluru\",\n    \"state\": \"Karnataka\",\n    \"postalCode\": \"560001\",\n    \"country\": \"India\"\n  },\n  \"billingAddress\": {\n    \"fullName\": \"Jane Doe\",\n    \"phone\": \"+91-9876543210\",\n    \"addressLine1\": \"12 MG Road\",\n    \"city\": \"Bengaluru\",\n    \"state\": \"Karnataka\",\n    \"postalCode\": \"560001\",\n    \"country\": \"India\"\n  },\n  \"deliveryMethod\": \"standard\",\n  \"couponCode\": \"WELCOME10\",\n  \"payment\": {\n    \"method\": \"mock\",\n    \"card\": {\n      \"number\": \"4242424242424242\",\n      \"expiry\": \"12/30\",\n      \"cvv\": \"123\"\n    }\n  },\n  \"items\": [\n    { \"variantId\": 1, \"quantity\": 1 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "List My Orders",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/orders/mine"
+          }
+        },
+        {
+          "name": "Get Order by Number",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/orders/NV-100182"
+          }
+        },
+        {
+          "name": "Cancel Order",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/orders/NV-100182/cancel"
+          }
+        },
+        {
+          "name": "Confirm Payment",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/orders/NV-100182/confirm-payment"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Charge Payment",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/payments/charge",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": 1,\n  \"method\": \"mock\",\n  \"card\": {\n    \"number\": \"4242424242424242\",\n    \"expiry\": \"12/30\",\n    \"cvv\": \"123\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Payment Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/payments/pay_nv_9a1b2c3d"
+          }
+        },
+        {
+          "name": "Refund Payment (Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/payments/pay_nv_9a1b2c3d/refund",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Customer request\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Shipping",
+      "item": [
+        {
+          "name": "List Delivery Methods",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/shipping/methods"
+          }
+        },
+        {
+          "name": "Track Shipment",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/shipping/shipments/NVL2025001121"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "List Reviews",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews?productId=1&page=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reviews"],
+              "query": [
+                { "key": "productId", "value": "1" },
+                { "key": "page", "value": "1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Review Summary",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews/summary?productId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reviews", "summary"],
+              "query": [{ "key": "productId", "value": "1" }]
+            }
+          }
+        },
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/reviews",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1,\n  \"rating\": 5,\n  \"title\": \"Amazing phone!\",\n  \"body\": \"Best camera I have ever used. Battery life is outstanding.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Toggle Helpful",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/reviews/1/helpful"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "item": [
+        {
+          "name": "Search Products",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/search?q=nova+watch",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search"],
+              "query": [{ "key": "q", "value": "nova watch" }]
+            }
+          }
+        },
+        {
+          "name": "Get Suggestions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/search/suggestions?q=nova",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "suggestions"],
+              "query": [{ "key": "q", "value": "nova" }]
+            }
+          }
+        },
+        {
+          "name": "Record Recent Query",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/search/recent",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"q\": \"nova watch\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Recent Queries",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/search/recent"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inventory (Admin)",
+      "item": [
+        {
+          "name": "List Inventory",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/inventory?page=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "inventory"],
+              "query": [{ "key": "page", "value": "1" }]
+            }
+          }
+        },
+        {
+          "name": "Update Variant Stock",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/admin/inventory/variants/1",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 50,\n  \"lowStockThreshold\": 10\n}"
+            }
+          }
+        },
+        {
+          "name": "Check Variant Stock (public)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/inventory/variants/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/notifications"
+          }
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/notifications/1/read"
+          }
+        },
+        {
+          "name": "Send Notification (internal)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/notifications/send",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"order_confirmed\",\n  \"email\": \"jane@example.com\",\n  \"data\": {\n    \"orderNumber\": \"NV-100182\",\n    \"name\": \"Jane Doe\",\n    \"total\": \"₹1,25,390\"\n  }\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Products",
+      "item": [
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/admin/products",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nova X2 Pro\",\n  \"slug\": \"nova-x2-pro\",\n  \"tagline\": \"Next generation flagship\",\n  \"description\": \"The Nova X2 Pro delivers next-gen AI, a revolutionary camera and all-day battery.\",\n  \"brand\": \"Nova\",\n  \"categoryId\": 1,\n  \"basePrice\": 89990,\n  \"compareAtPrice\": 94990,\n  \"badge\": \"New\",\n  \"isFeatured\": true,\n  \"isNew\": true,\n  \"variants\": [\n    {\n      \"sku\": \"NVX2POBS256\",\n      \"name\": \"Obsidian 256GB\",\n      \"color\": \"Obsidian\",\n      \"storage\": \"256GB\",\n      \"price\": 89990,\n      \"stock\": 20\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/admin/products/1",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tagline\": \"The smartest flagship yet\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Product (soft)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/admin/products/1"
+          }
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/admin/categories",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Speakers\",\n  \"slug\": \"speakers\",\n  \"description\": \"Nova smart speakers and audio equipment\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/admin/categories/1",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated description\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/admin/categories/1"
+          }
+        },
+        {
+          "name": "Create Promotion",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/admin/promotions",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Summer Sale\",\n  \"slug\": \"summer-sale\",\n  \"description\": \"Summer discounts on all Nova products\",\n  \"discountType\": \"percent\",\n  \"discountValue\": 15,\n  \"startsAt\": \"2026-06-01T00:00:00Z\",\n  \"endsAt\": \"2026-08-31T23:59:59Z\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Promotion",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/admin/promotions/1",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"discountValue\": 20\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Promotion",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/admin/promotions/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Orders",
+      "item": [
+        {
+          "name": "List All Orders",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/orders?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "orders"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Order Status",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/admin/orders/1/status",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PROCESSING\",\n  \"note\": \"Picking and packing\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Users",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users?page=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users"],
+              "query": [{ "key": "page", "value": "1" }]
+            }
+          }
+        },
+        {
+          "name": "Change User Role",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/admin/users/3/role",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"MANAGER\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Reviews",
+      "item": [
+        {
+          "name": "List Reviews (moderation queue)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/admin/reviews"
+          }
+        },
+        {
+          "name": "Approve Review",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/admin/reviews/6",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+# =====================================================================
+# Nova Store — Generic backend service Dockerfile
+#
+# Used by every service via docker-compose build args.
+# Build context MUST be the repository root so that the shared workspace
+# package is available during npm install.
+#
+# Usage (compose):
+#   build:
+#     context: .
+#     dockerfile: infrastructure/docker/Dockerfile.service
+#     args:
+#       SERVICE: auth-service
+# =====================================================================
+
+FROM node:20-alpine
+
+ARG SERVICE
+
+ENV NODE_ENV=production
+ENV SERVICE=${SERVICE}
+
+WORKDIR /app
+
+# Copy workspace root manifests
+COPY package.json package-lock.json* ./
+COPY shared/package.json shared/
+
+# Copy every service package.json (needed for workspace resolution)
+# We use a multi-stage copy pattern to maximise layer caching.
+COPY services/auth-service/package.json services/auth-service/
+COPY services/api-gateway/package.json services/api-gateway/
+COPY services/cart-service/package.json services/cart-service/
+COPY services/inventory-service/package.json services/inventory-service/
+COPY services/order-service/package.json services/order-service/
+COPY services/payment-service/package.json services/payment-service/
+COPY services/product-service/package.json services/product-service/
+COPY services/search-service/package.json services/search-service/
+COPY services/shipping-service/package.json services/shipping-service/
+COPY services/user-service/package.json services/user-service/
+COPY services/review-service/package.json services/review-service/
+COPY services/notification-service/package.json services/notification-service/
+
+# Install all workspaces (needed for @nova/shared dependency)
+RUN npm install --omit=dev
+
+# Copy the full source tree
+COPY . .
+
+EXPOSE 3000
+
+# Use shell form so $SERVICE is expanded at runtime.
+CMD node services/$SERVICE/src/index.js

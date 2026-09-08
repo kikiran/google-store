@@ -1,0 +1,55 @@
+{
+  "name": "nova-store",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Nova Store — a production-ready microservices e-commerce platform inspired by the Google Store shopping experience",
+  "type": "module",
+  "workspaces": [
+    "client",
+    "services/*",
+    "shared"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n gateway,auth,user,product,inventory,cart,order,payment,shipping,review,search,notification -c blue,green,magenta,yellow,cyan,red,blue,green,magenta,yellow,cyan,red \"npm run dev -w @nova/api-gateway\" \"npm run dev -w @nova/auth-service\" \"npm run dev -w @nova/user-service\" \"npm run dev -w @nova/product-service\" \"npm run dev -w @nova/inventory-service\" \"npm run dev -w @nova/cart-service\" \"npm run dev -w @nova/order-service\" \"npm run dev -w @nova/payment-service\" \"npm run dev -w @nova/shipping-service\" \"npm run dev -w @nova/review-service\" \"npm run dev -w @nova/search-service\" \"npm run dev -w @nova/notification-service\"",
+    "dev:client": "npm run dev -w client",
+    "dev:gateway": "npm run dev -w @nova/api-gateway",
+    "dev:auth": "npm run dev -w @nova/auth-service",
+    "dev:user": "npm run dev -w @nova/user-service",
+    "dev:product": "npm run dev -w @nova/product-service",
+    "dev:inventory": "npm run dev -w @nova/inventory-service",
+    "dev:cart": "npm run dev -w @nova/cart-service",
+    "dev:order": "npm run dev -w @nova/order-service",
+    "dev:payment": "npm run dev -w @nova/payment-service",
+    "dev:shipping": "npm run dev -w @nova/shipping-service",
+    "dev:review": "npm run dev -w @nova/review-service",
+    "dev:search": "npm run dev -w @nova/search-service",
+    "dev:notification": "npm run dev -w @nova/notification-service",
+    "db:init": "node infrastructure/scripts/init-db.mjs",
+    "db:seed": "node infrastructure/scripts/seed.mjs",
+    "db:setup": "node infrastructure/scripts/init-db.mjs && node infrastructure/scripts/seed.mjs",
+    "build": "npm run build -w client",
+    "preview": "npm run preview -w client",
+    "check": "node scripts/check.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kikiran/google-store.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kikiran/google-store/issues"
+  },
+  "homepage": "https://github.com/kikiran/google-store#readme"
+}
